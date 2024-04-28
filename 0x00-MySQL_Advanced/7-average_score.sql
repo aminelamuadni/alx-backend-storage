@@ -1,30 +1,30 @@
--- Drop existing procedure if it exists
+-- Drop the procedure if it already exists
 DROP PROCEDURE IF EXISTS ComputeAverageScoreForUser;
 
--- Set the delimiter to allow complex statement inside the procedure
+-- Change the delimiter for the procedure definition
 DELIMITER $$
 
--- Create a new procedure to calculate the average score
-CREATE PROCEDURE ComputeAverageScoreForUser(IN user_id INT)
+CREATE PROCEDURE ComputeAverageScoreForUser (IN user_id INT)
 BEGIN
-    -- Variables to hold the scores sum and count of corrections
-    DECLARE total_score DECIMAL(10, 2);
-    DECLARE score_count INT;
+    -- Declare variables to store total scores and count of projects
+    DECLARE total_score DECIMAL(10, 2);  -- Use decimal to ensure precision
+    DECLARE projects_count INT;
 
-    -- Calculate the sum of scores for the given user
-    SELECT SUM(score) INTO total_score FROM corrections WHERE user_id = user_id;
+    -- Calculate the total score for the user
+    SELECT SUM(score) INTO total_score
+    FROM corrections
+    WHERE user_id = user_id;
 
-    -- Count the number of scores entries for the given user
-    SELECT COUNT(*) INTO score_count FROM corrections WHERE user_id = user_id;
+    -- Count the number of projects for the user
+    SELECT COUNT(*) INTO projects_count
+    FROM corrections
+    WHERE user_id = user_id;
 
-    -- Update the average score in the users table
-    -- Check if there are any scores to avoid division by zero
-    IF score_count > 0 THEN
-        UPDATE users SET average_score = total_score / score_count WHERE id = user_id;
-    ELSE
-        UPDATE users SET average_score = 0 WHERE id = user_id;
-    END IF;
+    -- Update the user's average score, ensuring division returns a decimal value
+    UPDATE users
+    SET average_score = IF(projects_count = 0, 0, total_score / projects_count)
+    WHERE id = user_id;
 END$$
 
--- Reset the delimiter
+-- Reset the delimiter to the standard semicolon
 DELIMITER ;
