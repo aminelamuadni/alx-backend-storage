@@ -58,7 +58,7 @@ def log_stats(nginx_collection):
     top_ips = list(nginx_collection.aggregate(ip_pipeline))
     print("IPs:")
     for ip in top_ips:
-        print('\t{}: {}'.format(ip['_id'], ip['count']))
+        print('\t{}: {}'.format(ip['_id'], ip['totalRequests']))
 
 
 if __name__ == "__main__":
