@@ -46,10 +46,10 @@ def log_stats(nginx_collection):
     # Top 10 IPs
     ip_pipeline = [
             {
-                '$group': {'_id': "$ip", 'count': {'$sum': 1}}
+                '$group': {'_id': "$ip", 'totalRequests': {'$sum': 1}}
             },
             {
-                '$sort': {'count': -1}
+                '$sort': {'totalRequests': -1}
             },
             {
                 '$limit': 10
