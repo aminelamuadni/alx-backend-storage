@@ -1,43 +1,62 @@
 #!/usr/bin/env python3
 """
-web.py - A module for fetching web pages with caching and access count tracking
-using Redis.
+Module for caching and tracking web page requests using Redis.
+
+This module provides functionality to fetch web pages while caching their
+contents and tracking the number of requests for each URL.
 """
 
 import redis
 import requests
 from functools import wraps
 
+# Initialize Redis connection
 redis_client = redis.Redis()
 
 
-def cache_page(func):
+def cache_page(method):
     """
-    Decorator to cache the webpage content and track the number of accesses
-    using Redis.
+    Decorator to cache the webpage content and track the number of accesses.
+
+    Args:
+        method (Callable): The function to fetch web page content.
+
+    Returns:
+        Callable: Decorated function that returns cached or fetched content.
     """
-    @wraps(func)
+    @wraps(method)
     def wrapper(url):
-        count_key = f"count:{url}"
-        cache_key = f"cache:{url}"
-
-        redis_client.incr(count_key)
-
+        cache_key = "cached:" + url
         cached_data = redis_client.get(cache_key)
         if cached_data:
-            return cached_data.decode('utf-8')
+            return cached_data.decode("utf-8")
 
-        page_content = func(url)
-        redis_client.setex(cache_key, 10, page_content)
+        count_key = "count:" + url
+        page_content = method(url)
+
+        redis_client.incr(count_key)
+        redis_client.set(cache_key, page_content, ex=10)
+        redis_client.expire(cache_key, 10)
         return page_content
-
     return wrapper
 
 
 @cache_page
 def get_page(url: str) -> str:
     """
-    Fetches the webpage content from the given URL.
+    Fetches and returns the content of a webpage.
+
+    Args:
+        url (str): The URL of the webpage to fetch.
+
+    Returns:
+        str: The content of the webpage.
     """
-    response = requests.get(url)
-    return response.text
+    results = requests.get(url)
+    return results.text
+
+
+if __name__ == "__main__":
+    url = ("http://slowwly.robertomurray.co.uk/delay/3000/url/"
+           "http://www.google.com")
+    get_page(url)
