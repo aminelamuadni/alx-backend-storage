@@ -54,9 +54,3 @@ def get_page(url: str) -> str:
     """
     results = requests.get(url)
     return results.text
-
-
-if __name__ == "__main__":
-    url = "https://httpbin.org/delay/3"
-    print(get_page(url))
-    print(get_page(url))
