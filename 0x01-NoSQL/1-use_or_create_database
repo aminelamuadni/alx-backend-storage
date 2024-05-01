@@ -1,0 +1,2 @@
+// This script switches to the database 'my_db', creating it if it does not exist
+use my_db;
