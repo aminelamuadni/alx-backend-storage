@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Module to implement an expiring web cache and tracker with refined practices.
+Module to implement an expiring web cache and tracker.
+Uses Redis to store cached web pages and track page request counts.
 """
 
 import requests
@@ -17,7 +18,8 @@ def count_requests(func):
     """
     @wraps(func)
     def wrapper(url):
-        redis_client.incr(f"count:{url}")
+        key = f"count:{url}"
+        redis_client.incr(key)
         cached_content = redis_client.get(f"cached:{url}")
         if cached_content:
             return cached_content
@@ -30,8 +32,6 @@ def count_requests(func):
 
 @count_requests
 def get_page(url: str) -> str:
-    """
-    Fetches the HTML content of a specified URL using the requests module.
-    """
+    """Fetch the HTML content of a specified URL and return it."""
     response = requests.get(url)
     return response.text
