@@ -1,41 +1,43 @@
 #!/usr/bin/env python3
-""" Module to implement an expiring web cache and tracker. """
+"""
+web.py - A module for fetching web pages with caching and access count tracking
+using Redis.
+"""
 
 import redis
 import requests
+from functools import wraps
 
 redis_client = redis.Redis()
 
 
+def cache_page(func):
+    """
+    Decorator to cache the webpage content and track the number of accesses
+    using Redis.
+    """
+    @wraps(func)
+    def wrapper(url):
+        count_key = f"count:{url}"
+        cache_key = f"cache:{url}"
+
+        redis_client.incr(count_key)
+
+        cached_data = redis_client.get(cache_key)
+        if cached_data:
+            return cached_data.decode('utf-8')
+
+        page_content = func(url)
+        redis_client.setex(cache_key, 10, page_content)
+        return page_content
+
+    return wrapper
+
+
+@cache_page
 def get_page(url: str) -> str:
     """
-    Fetches the HTML content of a specified URL and caches it. It also tracks
-    how many times the URL has been accessed.
-
-    Args:
-    url (str): URL to fetch the HTML content from.
-
-    Returns:
-    str: HTML content of the page.
+    Fetches the webpage content from the given URL.
     """
-    count_key = f"count:{url}"
-    redis_client.incr(count_key)
-
-    cache_key = f"cached:{url}"
-    cached_content = redis_client.get(cache_key)
-    if cached_content:
-        return cached_content.decode('utf-8')
-
     response = requests.get(url)
-    html_content = response.text
-
-    redis_client.setex(cache_key, 10, html_content)
-
-    return html_content
-
-
-if __name__ == "__main__":
-    test_url = 'http://slowwly.robertomurray.co.uk/delay/5000/url/' \
-               'http://www.google.com'
-    print(get_page(test_url))
-    print(get_page(test_url))
+    return response.text
