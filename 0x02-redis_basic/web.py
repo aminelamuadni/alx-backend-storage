@@ -29,7 +29,7 @@ def cache_response(func):
         # Check if the cache already contains this URL
         cached_content = redis_client.get(url)
         if cached_content:
-            return cached_content.decode()
+            return cached_content.decode('utf-8')
 
         # Fetch new data and cache it
         response = func(url)
@@ -44,9 +44,3 @@ def get_page(url: str) -> str:
     """Fetch the HTML content of a specified URL and cache the result."""
     response = requests.get(url)
     return response.text
-
-
-if __name__ == "__main__":
-    url = 'http://slowwly.robertomurray.co.uk/delay/5000/url/' \
-          'http://www.google.com'
-    get_page(url)
