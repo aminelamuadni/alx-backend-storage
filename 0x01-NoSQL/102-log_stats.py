@@ -26,22 +26,22 @@ def log_stats(nginx_collection):
         '/status', and the top 10 most frequent IP addresses.
     """
     # Total logs count
-    logs_count = nginx_collection.estimated_document_count()
-    print(f"{logs_count} logs")
+    logs_count = nginx_collection.count_documents({})
+    print('{} logs'.format(logs_count))
 
     # Counts by method
     methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
     for method in methods:
-        count = nginx_collection.count_documents({"method": method})
-        print(f"\tmethod {method}: {count}")
+        count = len(list(nginx_collection.count_documents({"method": method})))
+        print('\tmethod {}: {}'.format(method, count))
 
     # Count of GET requests to '/status'
-    status_count = nginx_collection.count_documents({
+    status_count = len(list(nginx_collection.count_documents({
         "method": "GET",
         "path": "/status"
-        })
-    print(f"{status_count} status check")
+        })))
+    print('{} status check'.format(status_count))
 
     # Top 10 IPs
     ip_pipeline = [
@@ -52,7 +52,7 @@ def log_stats(nginx_collection):
     top_ips = list(nginx_collection.aggregate(ip_pipeline))
     print("IPs:")
     for ip in top_ips:
-        print(f"    {ip['_id']}: {ip['count']}")
+        print('\t{}: {}'.format(ip['_id'], ip['count']))
 
 
 if __name__ == "__main__":
