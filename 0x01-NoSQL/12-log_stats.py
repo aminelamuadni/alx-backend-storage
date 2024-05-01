@@ -11,7 +11,7 @@ def log_stats():
     nginx_collection = db.nginx
 
     # Total logs count
-    logs_count = nginx_collection.count_documents({})
+    logs_count = nginx_collection.estimated_document_count({})
     print(f"{logs_count} logs")
 
     # Counts by method
