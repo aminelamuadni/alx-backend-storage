@@ -47,8 +47,6 @@ def get_page(url: str) -> str:
 
 
 if __name__ == "__main__":
-    # Example usage
     url = 'http://slowwly.robertomurray.co.uk/delay/5000/url/' \
           'http://www.google.com'
-    print(get_page(url))  # First time fetches and caches the content
-    print(get_page(url))  # Subsequent calls within 10 seconds use cached data
+    get_page(url)
