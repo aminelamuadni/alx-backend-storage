@@ -26,39 +26,37 @@ def log_stats(nginx_collection):
         '/status', and the top 10 most frequent IP addresses.
     """
     # Total logs count
-    logs_count = nginx_collection.count_documents({})
-    print('{} logs'.format(logs_count))
+    print('{} logs'.format(nginx_collection.count_documents({})))
 
     # Counts by method
-    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     print("Methods:")
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
     for method in methods:
-        count = len(list(nginx_collection.count_documents({"method": method})))
+        count = len(list(nginx_collection.find({"method": method})))
         print('\tmethod {}: {}'.format(method, count))
 
     # Count of GET requests to '/status'
-    status_count = len(list(nginx_collection.count_documents({
-        "method": "GET",
-        "path": "/status"
-        })))
+    status_count = len(list(
+        nginx_collection.find({"method": "GET", "path": "/status"})
+    ))
     print('{} status check'.format(status_count))
 
     # Top 10 IPs
     ip_pipeline = [
             {
-                '$group': {'_id': "$ip", 'totalRequests': {'$sum': 1}}
+                '$group': {'_id': "$ip", 'count': {'$sum': 1}}
             },
             {
-                '$sort': {'totalRequests': -1}
+                '$sort': {'count': -1}
             },
             {
                 '$limit': 10
             },
         ]
-    top_ips = list(nginx_collection.aggregate(ip_pipeline))
-    print("IPs:")
+    top_ips = nginx_collection.aggregate(ip_pipeline)
+    print('IPs:')
     for ip in top_ips:
-        print('\t{}: {}'.format(ip['_id'], ip['totalRequests']))
+        print('\t{}: {}'.format(ip['_id'], ip['count']))
 
 
 if __name__ == "__main__":
