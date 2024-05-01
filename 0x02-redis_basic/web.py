@@ -8,7 +8,7 @@ import requests
 import redis
 from functools import wraps
 
-redis_client = redis.Redis(decode_responses=True)
+redis_client = redis.Redis()
 
 
 def count_requests(func):
@@ -26,18 +26,15 @@ def cache_response(func):
     """
     @wraps(func)
     def wrapper(url):
-        cached_content = redis_client.get(url)
+        # Check if the cache already contains this URL
+        cached_content = redis_client.get(f"cached:{url}")
         if cached_content:
-            return cached_content
+            return cached_content.decode()
 
-        try:
-            response = func(url)
-            redis_client.setex(url, 10, response.encode('utf-8'))
-            return response
-        except requests.RequestException as e:
-            print(f"Error fetching {url}: {e}")
-            return None
-
+        # Fetch new data and cache it
+        response = func(url)
+        redis_client.setex(url, 10, response)  # Cache expires in 10 seconds
+        return response
     return wrapper
 
 
