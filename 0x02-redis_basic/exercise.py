@@ -6,7 +6,7 @@ data from a Redis database using randomly generated keys.
 
 import redis
 import uuid
-from typing import Union
+from typing import Union, Callable, Optional
 
 
 class Cache:
@@ -34,3 +34,52 @@ class Cache:
         key = str(uuid.uuid4())
         self._redis.set(name=key, value=data)
         return key
+
+    def get(self, key: str, fn: Optional[Callable] = None) -> \
+            Optional[Union[str, bytes, int, float]]:
+        """
+        Retrieve data from Redis by key, optionally applying a conversion
+        function.
+
+        Args:
+            key (str): The Redis key under which the data is stored.
+            fn (Optional[Callable]): A function to convert the data from bytes
+                                     to the desired format (default is None,
+                                     which returns the data as bytes).
+
+        Returns:
+            Union[str, bytes, int, float, None]: The data retrieved from Redis,
+                                                 possibly converted to a
+                                                 different type, or None if the
+                                                 key does not exist.
+        """
+        data = self._redis.get(key)
+        if data is None:
+            return None
+        if fn:
+            return fn(data)
+        return data
+
+    def get_str(self, key: str) -> Optional[str]:
+        """
+        Retrieve a string from Redis.
+
+        Args:
+            key (str): The Redis key.
+
+        Returns:
+            Optional[str]: The string data or None if key does not exist.
+        """
+        return self.get(key, lambda x: x.decode('utf-8'))
+
+    def get_int(self, key: str) -> Optional[int]:
+        """
+        Retrieve an integer from Redis.
+
+        Args:
+            key (str): The Redis key.
+
+        Returns:
+            Optional[int]: The integer data or None if key does not exist.
+        """
+        return self.get(key, int)
