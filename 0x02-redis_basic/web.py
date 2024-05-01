@@ -57,6 +57,4 @@ def get_page(url: str) -> str:
 
 
 if __name__ == "__main__":
-    url = ("http://slowwly.robertomurray.co.uk/delay/3000/url/"
-           "http://www.google.com")
-    get_page(url)
+    get_page("http://slowwly.robertomurray.co.uk")
