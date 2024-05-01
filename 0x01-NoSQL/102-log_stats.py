@@ -45,10 +45,16 @@ def log_stats(nginx_collection):
 
     # Top 10 IPs
     ip_pipeline = [
-        {"$group": {"_id": "$ip", "count": {"$sum": 1}}},
-        {"$sort": {"count": -1}},
-        {"$limit": 10}
-    ]
+            {
+                '$group': {'_id': "$ip", 'count': {'$sum': 1}}
+            },
+            {
+                '$sort': {'count': -1}
+            },
+            {
+                '$limit': 10
+            },
+        ]
     top_ips = list(nginx_collection.aggregate(ip_pipeline))
     print("IPs:")
     for ip in top_ips:
