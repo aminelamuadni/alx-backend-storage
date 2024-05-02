@@ -26,18 +26,23 @@ def cache_page(method):
     """
     @wraps(method)
     def wrapper(url):
-        cache_key = "cached:" + url
+        cache_key = f"cached:{url}"
+        count_key = f"count:{url}"
+
+        # Attempt to get cached data
         cached_data = redis_client.get(cache_key)
         if cached_data:
             return cached_data.decode("utf-8")
 
-        count_key = "count:" + url
+        # Fetch the content as it's not in the cache
         page_content = method(url)
 
+        # Increment the count and set the cache with expiration
         redis_client.incr(count_key)
-        redis_client.set(cache_key, page_content, ex=10)
-        redis_client.expire(cache_key, 10)
+        redis_client.setex(cache_key, 10, page_content)  # Set with expiration
+
         return page_content
+
     return wrapper
 
 
@@ -52,5 +57,5 @@ def get_page(url: str) -> str:
     Returns:
         str: The content of the webpage.
     """
-    results = requests.get(url)
-    return results.text
+    response = requests.get(url)
+    return response.text
