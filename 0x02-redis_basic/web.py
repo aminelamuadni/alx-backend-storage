@@ -39,7 +39,7 @@ def cache_page(method):
 
         # Increment the count and set the cache with expiration
         redis_client.incr(count_key)
-        redis_client.setex(cache_key, 10, page_content)  # Set with expiration
+        redis_client.setex(cache_key, 10000, page_content)  # Set with expiration
 
         return page_content
 
