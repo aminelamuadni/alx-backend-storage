@@ -29,6 +29,9 @@ def cache_page(method):
         cache_key = f"cached:{url}"
         count_key = f"count:{url}"
 
+        # Increment the count regardless of cache hit or miss
+        redis_client.incr(count_key)
+
         # Attempt to get cached data
         cached_data = redis_client.get(cache_key)
         if cached_data:
@@ -37,9 +40,8 @@ def cache_page(method):
         # Fetch the content as it's not in the cache
         page_content = method(url)
 
-        # Increment the count and set the cache with expiration
-        redis_client.incr(count_key)
-        redis_client.setex(cache_key, 10000, page_content)  # Set with expiration
+        # Set the cache with expiration
+        redis_client.setex(cache_key, 10, page_content)  # Set with expiration
 
         return page_content
 
